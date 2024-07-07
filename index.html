@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>画线王</title>
+    <style>
+      body {
+        margin: 0;
+        padding: 0;
+        background-color: #000000;
+        overflow: hidden;
+      }
+      canvas {
+        touch-action: none;
+        cursor: crosshair;
+      }
+    </style>
+
+    <script src="./pixi.js"></script>
+  </head>
+
+  <body>
+    <script>
+      const app = new PIXI.Application({
+        backgroundColor: 0xffffff,
+        resolution: 1,
+        width: window.innerWidth,
+        height: window.innerHeight,
+        antialias: true,
+        resolution: window.devicePixelRatio || 1,
+      });
+
+      const option = {
+        circleSize: 8,
+        brushSize: 4,
+        circle_hp: 3,
+      };
+
+      app.renderer.plugins.interaction.cursorStyles.default = "crosshair";
+	  app.renderer.autoDensity = true;
+
+      const graphics = new PIXI.Graphics();
+      graphics.beginFill(0xf3f3f3);
+      graphics.drawRect(0, 0, app.screen.width, app.screen.height);
+      graphics.endFill();
+      app.stage.addChild(graphics);
+      graphics.lineStyle(4, 0xffd900, 1);
+
+      let brushPressure = 0;
+      const canvas = document.body.appendChild(app.view);
+      const { stage } = app;
+      const historyX = [];
+      const historyY = [];
+      const historySize = 20;
+      const ropeSize = 100;
+      const points = [];
+
+      for (let i = 0; i < historySize; i++) {
+        historyX.push(0);
+        historyY.push(0);
+      }
+
+      let circle = new PIXI.Graphics();
+      circle.beginFill(0x028a45);
+      circle.drawCircle(0, 0, option.circleSize);
+      circle.endFill();
+      randomPosition(circle);
+      app.stage.addChild(circle);
+      circle.interactive = true;
+      let circle2 = new PIXI.Graphics();
+      circle2.beginFill(0x028a45);
+      circle2.drawCircle(0, 0, option.circleSize);
+      circle2.endFill();
+      randomPosition(circle2);
+      app.stage.addChild(circle2);
+      circle2.interactive = true;
+
+      const realPath = new PIXI.Graphics();
+
+      const text1 = new PIXI.Text(option.circle_hp, {
+        fontFamily: "Arial",
+        fill: "#57e800",
+        fontSize: option.circleSize * 1.5,
+      });
+      text1.x = circle.x;
+      text1.y = circle.y;
+      text1.pivot.x = text1.width / 2;
+      text1.pivot.y = text1.height / 2;
+      const text2 = new PIXI.Text(option.circle_hp, {
+        fontFamily: "Arial",
+        fill: "#57e800",
+        fontSize: option.circleSize * 1.5,
+      });
+      text2.x = circle2.x;
+      text2.y = circle2.y;
+      text2.pivot.x = text2.width / 2;
+      text2.pivot.y = text2.height / 2;
+      app.stage.addChild(text1);
+      app.stage.addChild(text2);
+
+      realPath.lineStyle(brushPressure * 4, 0x000000, 1);
+      app.stage.addChild(realPath);
+
+      realPath.position.x = 0;
+      realPath.position.y = 0;
+
+      app.stage.interactive = true;
+      app.stage.on("pointermove", pointerMove);
+      app.stage.on("pointerdown", pointerDown);
+      app.stage.on("pointerup", pointerUp);
+      let dragging = false;
+
+      function onPointerOver(object) {
+        object.tint = 0x666666;
+      }
+
+      function onPointerOut(object) {
+        object.tint = 0xffffff;
+      }
+
+      function randomPosition(obj) {
+        let marginY = 1;
+        let marginX = 1200;
+        let rw = Math.floor(Math.random() * (app.screen.width - marginX - marginX + 1) + marginX);
+        let ry = Math.floor(app.screen.height / 2 + Math.random() * marginY);
+        obj.x = rw;
+        obj.y = ry;
+      }
+
+      function pointerDown(event) {
+        dragging = true;
+        const mouseposition = event.data.global;
+        historyX.pop();
+        historyX.unshift(mouseposition.x);
+        historyY.pop();
+        historyY.unshift(mouseposition.y);
+        pointerMove(event);
+        circle.isPass = false;
+        circle2.isPass = false;
+      }
+
+      function resetPosition(c1, c2) {
+        randomPosition(c1);
+        randomPosition(c2);
+
+        if (calc_distance(c1.x, c1.y, c2.x, c2.y) < 100) {
+          resetPosition(c1, c2);
+        }
+      }
+
+      function pointerUp(event) {
+        dragging = false;
+        if (circle.isPass && circle2.isPass) {
+          option.circle_hp--;
+
+          if (option.circle_hp <= 0) {
+            resetPosition(circle, circle2);
+
+            option.circle_hp = 3;
+
+            brush.clear();
+            realPath.clear();
+          }
+          let randomX = Math.floor(Math.random() * (200 - 10 + 1) + 10);
+          let randomY = Math.floor(Math.random() * (200 - 10 + 1) + 10);
+          let random2 = Math.round(Math.random()) * 2 - 1;
+
+          circle.x += randomX * random2;
+          circle.y += randomY * random2;
+          circle2.x += randomX * random2;
+          circle2.y += randomY * random2;
+
+          if (circle.x < 100 || circle.y < 100 || circle2.x < 100 || circle2.y < 100 || circle.x > app.screen.width - 100 || circle.y > app.screen.height - 100 || circle2.x > app.screen.width - 100 || circle2.y > app.screen.height - 100) {
+            circle.x -= randomX * random2 * 2;
+            circle.y -= randomY * random2 * 2;
+            circle2.x -= randomX * random2 * 2;
+            circle2.y -= randomY * random2 * 2;
+          }
+        } else {
+          if (option.circle_hp < 3) {
+            option.circle_hp++;
+          }
+        }
+        text1.x = circle.x;
+        text1.y = circle.y;
+        text1.text = option.circle_hp;
+        text1.pivot.x = text1.width / 2;
+        text1.pivot.y = text1.height / 2;
+
+        text2.x = circle2.x;
+        text2.y = circle2.y;
+        text2.text = option.circle_hp;
+        text2.pivot.x = text2.width / 2;
+        text2.pivot.y = text2.height / 2;
+      }
+
+      const brush = new PIXI.Graphics();
+
+      brush.position.x = 0;
+      brush.position.y = 0;
+      brush.beginFill(0x000000);
+      brush.endFill();
+
+      app.stage.addChild(brush);
+
+      function calc_angle(x1, y1, x2, y2) {
+        x = x1 - x2;
+        y = y1 - y2;
+        let angle = 0;
+        z = Math.sqrt(x * x + y * y);
+        if (x > 0 && y > 0) {
+          angle = Math.asin(y / z) + (180 * Math.PI) / 180;
+        } else if (x > 0 && y < 0) {
+          angle = -Math.acos(x / z) + (180 * Math.PI) / 180;
+        } else if (x < 0 && y > 0) {
+          angle = Math.acos(x / z) + (180 * Math.PI) / 180;
+        } else if (x < 0 && y < 0) {
+          angle = -Math.asin(y / z);
+        }
+        return angle;
+      }
+
+      function calc_center(x1, y1, x2, y2) {
+        a = Math.abs(x1 + x2) / 2;
+        b = Math.abs(y1 + y2) / 2;
+        return {
+          x: a,
+          y: b,
+        };
+      }
+
+      function calc_distance(x1, y1, x2, y2) {
+        let distance = Math.sqrt(Math.pow(x1 - x2, 2) + Math.pow(y1 - y2, 2));
+        return distance;
+      }
+
+      const collisionRect = new PIXI.Graphics();
+      collisionRect.beginFill(0xde3249);
+      collisionRect.endFill();
+      collisionRect.x = 0;
+      collisionRect.y = 0;
+
+      brush.beginFill(0x000000);
+      brush.endFill();
+
+      function isHit(rect, circle, rotate) {
+        let rotatedX = (circle.x - rect.x) * Math.cos(-rotate) - (circle.y - rect.y) * Math.sin(-rotate) + rect.x;
+        let rotatedY = (circle.x - rect.x) * Math.sin(-rotate) + (circle.y - rect.y) * Math.cos(-rotate) + rect.y;
+
+        let nearestX = Math.max(rect.x - rect.width / 2, Math.min(rotatedX, rect.x - rect.width / 2 + rect.width));
+        let nearestY = Math.max(rect.y - rect.height / 2, Math.min(rotatedY, rect.y - rect.height / 2 + rect.height));
+
+        let distance = Math.sqrt(Math.pow(nearestX - rotatedX, 2) + Math.pow(nearestY - rotatedY, 2));
+
+        return distance < option.circleSize;
+      }
+
+      function pointerMove(event) {
+        if (dragging) {
+          const mouseposition = event.data.global;
+          realPath.lineStyle(option.brushSize * brushPressure, 0x000000, 1);
+          realPath.moveTo(historyX[0], historyY[0]);
+          realPath.lineTo(mouseposition.x, mouseposition.y);
+          brush.beginFill(0x000000);
+          brush.drawCircle(mouseposition.x, mouseposition.y, (option.brushSize * brushPressure) / 2);
+          brush.endFill();
+
+          let distance = calc_distance(historyX[0], historyY[0], mouseposition.x, mouseposition.y);
+          collisionRect.clear();
+
+          let center = calc_center(historyX[0], historyY[0], mouseposition.x, mouseposition.y);
+
+          collisionRect.x = center.x;
+          collisionRect.y = center.y;
+          collisionRect.beginFill(0xde3249);
+          collisionRect.drawRect(historyX[0], historyY[0], distance, 1);
+          collisionRect.pivot.x = collisionRect.width / 2;
+          collisionRect.pivot.y = collisionRect.height / 2;
+
+          let angle = calc_angle(historyX[0], historyY[0], mouseposition.x, mouseposition.y);
+
+          if (!circle.isPass) {
+            if (isHit(collisionRect, circle, angle)) {
+              circle.isPass = true;
+            }
+          }
+
+          if (!circle2.isPass) {
+            if (isHit(collisionRect, circle2, angle)) {
+              circle2.isPass = true;
+            }
+          }
+
+          historyX.pop();
+          historyX.unshift(mouseposition.x);
+          historyY.pop();
+          historyY.unshift(mouseposition.y);
+        }
+      }
+
+      function clipInput(k, arr) {
+        if (k < 0) k = 0;
+        if (k > arr.length - 1) k = arr.length - 1;
+        return arr[k];
+      }
+
+      function getTangent(k, factor, array) {
+        return (factor * (clipInput(k + 1, array) - clipInput(k - 1, array))) / 2;
+      }
+
+      function cubicInterpolation(array, t, tangentFactor) {
+        if (tangentFactor == null) tangentFactor = 1;
+
+        const k = Math.floor(t);
+        const m = [getTangent(k, tangentFactor, array), getTangent(k + 1, tangentFactor, array)];
+        const p = [clipInput(k, array), clipInput(k + 1, array)];
+        t -= k;
+        const t2 = t * t;
+        const t3 = t * t2;
+        return (2 * t3 - 3 * t2 + 1) * p[0] + (t3 - 2 * t2 + t) * m[0] + (-2 * t3 + 3 * t2) * p[1] + (t3 - t2) * m[1];
+      }
+
+      canvas.addEventListener("gotpointercapture", function (e) {
+        brushPressure = Math.ceil(e.pressure * 100) / 100;
+      });
+
+      canvas.addEventListener("pointermove", function (e) {
+        brushPressure = Math.ceil(e.pressure * 100) / 100;
+      });
+
+      window.addEventListener("keydown", function () {
+        if (event.keyCode == 82 || event.keyCode == 67) {
+          brush.clear();
+          realPath.clear();
+        }
+      });
+    </script>
+  </body>
+</html>

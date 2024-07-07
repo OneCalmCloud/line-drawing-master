@@ -1,2 +1,11 @@
-# line-drawing-master
-Assist in practicing drawing lines on a graphics tablet.
+## Obsidian Mindmap
+
+[English](README.md) | [中文](README.zh.md)
+
+当你第一次使用数位板的时候，是否因为无法画出完美的线条而气馁。
+
+一举画出完美的线条是我们在创作草稿绘画时都渴望的事情。
+
+这个项目将帮助你提高在数位板上绘制线条的技巧。你可以反复练习并获得即时反馈。
+
+在界面中按下 R 键会清空之前画的线。

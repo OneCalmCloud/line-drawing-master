@@ -2,10 +2,10 @@
 
 [English](README.md) | [中文](README.zh.md)
 
-When you first use a drawing tablet, do you feel discouraged because you can't draw perfect lines?
+当你第一次使用数位板的时候，是否因为无法画出完美的线条而气馁。
 
-Drawing perfect lines in one stroke is something we all aspire to when creating sketch art.
+一举画出完美的线条是我们在创作草稿绘画时都渴望的事情。
 
-This project will help you improve your line-drawing skills on a tablet. You can practice repeatedly and get instant feedback.
+这个项目将帮助你提高在数位板上绘制线条的技巧。你可以反复练习并获得即时反馈。
 
-Pressing the R key in the interface will clear the previously drawn lines.
+在界面中按下 R 键会清空之前画的线。

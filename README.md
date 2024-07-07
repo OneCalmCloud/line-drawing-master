@@ -1,4 +1,4 @@
-## Obsidian Mindmap
+## Line Drawing Master
 
 [English](README.md) | [中文](README.zh.md)
 
